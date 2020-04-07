@@ -1,24 +1,38 @@
-import React, { useState } from "react";
+import React, { useCallback, useReducer } from "react";
 import CreateForm from "./components/createForm";
 import UsersTable from "./components/table";
 import "./styles.css";
 
-export default function App() {
-  const [users, setUsers] = useState([]);
-  const [createFormVisible, setCreateFormVisible] = useState(false);
+const initialState = {users: [], createFormVisible: false };
 
-  const addUser = user => {
-    setUsers([...users, user]);
-    setCreateFormVisible(false);
+const actionTypes = {
+  CREATE_USER: "CREATE_USER",
+  DELETE_USER: "DELETE_USER",
+  SHOW_CREATE_FORM: "SHOW_CREATE_FORM",
+}
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case actionTypes.CREATE_USER:
+      return { ...state, users: [...state.users, action.payload], createFormVisible: false};
+    case actionTypes.DELETE_USER:
+      const newUsers = [...state.users];
+      newUsers.splice(action.payload, 1);
+      return { ...state, users: newUsers };
+    case actionTypes.SHOW_CREATE_FORM:
+      return { ...state, createFormVisible: true };
+    default:
+      throw new Error();
   }
+}
 
-  const deleteUser = userIndex => {
-    const newUsers = [...users];
-    newUsers.splice(userIndex, 1);
-    setUsers(newUsers);
-  };
+export default function App() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { users, createFormVisible } = state;
 
-  const showCreateForm = () => setCreateFormVisible(true);
+  const addUser = useCallback(user => dispatch({type: actionTypes.CREATE_USER, payload: user }), [dispatch]);
+  const deleteUser = useCallback(userIndex => dispatch({type: actionTypes.DELETE_USER, payload: userIndex }), [dispatch]);
+  const showCreateForm = useCallback(() => dispatch({type: actionTypes.SHOW_CREATE_FORM }), [dispatch]);
 
   return (
     <div className="App">
